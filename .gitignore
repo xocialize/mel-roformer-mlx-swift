@@ -1,0 +1,32 @@
+# Build artifacts
+.build/
+.swiftpm/
+DerivedData/
+
+# Package resolution (debatable to include — kept gitignored to avoid
+# pinning consumers to specific transitive versions; users get fresh resolution)
+Package.resolved
+
+# Weights — never commit. Download from mlx-community/... per README.
+weights/
+
+# Reference fixtures — generate locally as needed.
+Tests/fixtures/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# IDE
+.idea/
+.vscode/
+
+# Tooling
+*.swp
+.~lock.*
