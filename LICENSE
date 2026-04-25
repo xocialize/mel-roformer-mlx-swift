@@ -19,15 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This package implements the Mel-Band-RoFormer architecture from
-Lu, Wang, Won, Choi, Song, "Mel-Band RoFormer for Music Source Separation"
-(arXiv:2310.01809, 2023). The architecture is MIT-licensed via lucidrains/BS-RoFormer
-(https://github.com/lucidrains/BS-RoFormer) and the training-time configurations
-from ZFTurbo/Music-Source-Separation-Training
-(https://github.com/ZFTurbo/Music-Source-Separation-Training).
-
-Individual pre-trained checkpoint licenses are tracked separately on the
-mlx-community HuggingFace repos referenced in the README.
