@@ -2,7 +2,7 @@
 
 Swift / [MLX](https://github.com/ml-explore/mlx-swift) implementation of [Mel-Band-RoFormer](https://arxiv.org/abs/2310.01809) for vocal source separation on Apple Silicon.
 
-Companion to the upstream Python implementation in [`Blaizzy/mlx-audio`](https://github.com/Blaizzy/mlx-audio) (currently in [PR #654](https://github.com/Blaizzy/mlx-audio/pull/654)). Loads pre-converted MLX weight checkpoints from HuggingFace and runs vocal separation natively on M-series Macs — no PyTorch, no CoreML, no CUDA.
+Companion to the upstream Python implementation in [`Blaizzy/mlx-audio`](https://github.com/Blaizzy/mlx-audio) Loads pre-converted MLX weight checkpoints from HuggingFace and runs vocal separation natively on M-series Macs — no PyTorch, no CoreML, no CUDA.
 
 ## Installation
 
