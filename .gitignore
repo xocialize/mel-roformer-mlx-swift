@@ -7,8 +7,11 @@ DerivedData/
 # pinning consumers to specific transitive versions; users get fresh resolution)
 Package.resolved
 
-# Weights — never commit. Download from mlx-community/... per README.
-weights/
+# Downloaded model weights — never commit. Fetch from mlx-community/... per README.
+# Anchored to repo root: an unanchored `weights/` also matches the source directory
+# `Sources/SwiftRoFormer/Weights/` on case-insensitive filesystems (macOS), which silently
+# dropped WeightLoader.swift from the published repo.
+/weights/
 
 # Reference fixtures — generate locally as needed.
 Tests/fixtures/
