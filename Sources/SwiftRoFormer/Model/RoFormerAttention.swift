@@ -94,28 +94,34 @@ class RoFormerAttention: Module {
     ///   - freqs: Frequency bases `[D_h/2]` from checkpoint.
     /// - Returns: Rotated tensor `[B, T, H, D_h]`.
     static func applyRoPE(_ x: MLXArray, freqs: MLXArray) -> MLXArray {
+        // INTERLEAVED-PAIR RoPE — matches `rotary_embedding_torch` (the package the
+        // checkpoints were trained with), which rotates adjacent dimension pairs
+        // (x[2i], x[2i+1]). The earlier "halved" convention ((x[:half], x[half:]))
+        // is a mathematically valid RoPE but does NOT match training: q/k rotate
+        // about different planes and attention decorrelates from the reference —
+        // energies stay healthy while features (and the estimated masks) collapse.
+        // Mirrors `_apply_rope` in the Python mlx-audio reference.
+        let B = x.shape[0]
         let seqLen = x.shape[1]
-        let halfDim = x.shape[3] / 2
+        let H = x.shape[2]
+        let dimHead = x.shape[3]
+        let halfDim = dimHead / 2
 
-        // Build position-dependent angles: [T, halfDim]
+        // Angles per (position, base frequency): [T, halfDim]
         let positions = MLXArray(Array(0..<seqLen).map { Float($0) })
-        // outer product: positions [T] × freqs [halfDim] → [T, halfDim]
         let angles = positions.reshaped([seqLen, 1]) * freqs.reshaped([1, halfDim])
-        let cosAngles = cos(angles)  // [T, halfDim]
-        let sinAngles = sin(angles)  // [T, halfDim]
+        // Duplicate each frequency for its pair: [f0, f0, f1, f1, …] → [T, dimHead]
+        let cosDup = stacked([cos(angles), cos(angles)], axis: -1).reshaped([seqLen, dimHead])
+        let sinDup = stacked([sin(angles), sin(angles)], axis: -1).reshaped([seqLen, dimHead])
+        let cos4d = cosDup.reshaped([1, seqLen, 1, dimHead])
+        let sin4d = sinDup.reshaped([1, seqLen, 1, dimHead])
 
-        // Split x into paired halves along last dim
-        let x1 = x[0..., 0..., 0..., ..<halfDim]   // [B, T, H, halfDim]
-        let x2 = x[0..., 0..., 0..., halfDim...]    // [B, T, H, halfDim]
+        // rotate_pairs(x): (x[2i], x[2i+1]) → (−x[2i+1], x[2i])
+        let pairs = x.reshaped([B, seqLen, H, halfDim, 2])
+        let xEven = pairs[0..., 0..., 0..., 0..., 0]   // [B, T, H, halfDim]
+        let xOdd = pairs[0..., 0..., 0..., 0..., 1]
+        let rotated = stacked([-xOdd, xEven], axis: -1).reshaped([B, seqLen, H, dimHead])
 
-        // Broadcast angles to match: [1, T, 1, halfDim]
-        let cos4d = cosAngles.reshaped([1, seqLen, 1, halfDim])
-        let sin4d = sinAngles.reshaped([1, seqLen, 1, halfDim])
-
-        // Apply rotation: (x1·cos - x2·sin, x2·cos + x1·sin)
-        let rotated1 = x1 * cos4d - x2 * sin4d
-        let rotated2 = x2 * cos4d + x1 * sin4d
-
-        return concatenated([rotated1, rotated2], axis: -1)
+        return x * cos4d + rotated * sin4d
     }
 }
