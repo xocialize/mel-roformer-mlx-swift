@@ -116,6 +116,27 @@ public final class RoFormerSeparator: @unchecked Sendable {
 
     // MARK: - Initialization
 
+    /// Create a separator around an already-loaded model.
+    ///
+    /// Use this when the model's lifecycle is owned elsewhere — e.g. a host that paged the
+    /// weights in via ``MelRoFormer/fromPretrained(_:configuration:hub:progress:)`` and wants the
+    /// separator to reuse that single resident instance rather than load weights again. The
+    /// `configuration` must match the one the model was built with (it drives chunking / STFT).
+    ///
+    /// - Parameters:
+    ///   - model: A `MelRoFormer` with weights already loaded.
+    ///   - configuration: Processing configuration (must match `model`'s; default: Kim Vocal 2).
+    public init(
+        model: MelRoFormer,
+        configuration: RoFormerConfiguration = .kimVocal2
+    ) {
+        self.config = configuration
+        self.audioIO = AudioIO()
+        self.cancelFlag = OSAllocatedUnfairLock(initialState: false)
+        MLX.Memory.cacheLimit = configuration.gpuCacheLimit
+        self.model = model
+    }
+
     /// Create a new RoFormer separator, loading model weights from disk.
     ///
     /// - Parameters:
