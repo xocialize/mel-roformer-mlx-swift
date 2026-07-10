@@ -572,7 +572,18 @@ public final class RoFormerSeparator: @unchecked Sendable {
         )
     }
 
+    /// Check if cancellation has been requested — either lane.
+    ///
+    /// Two cancellation lanes, distinct error types by design:
+    /// - The wrapping `Task` was cancelled (MLXEngine run-lifecycle / C13 cooperative
+    ///   cancellation): throws `CancellationError` UNCHANGED — callers and the engine classify
+    ///   cancelled-vs-failed by that type, so it must never be wrapped in `RoFormerError`.
+    /// - The explicit `cancel()` API set `cancelFlag`: throws `RoFormerError.cancelled`.
+    ///
+    /// Called per processed 8 s chunk in `separateChunked` (and between pipeline stages), so a
+    /// cancelled separation bails at the next chunk boundary.
     private func checkCancelled() throws {
+        try Task.checkCancellation()
         if cancelFlag.withLock({ $0 }) {
             throw RoFormerError.cancelled
         }
